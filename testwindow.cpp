@@ -1,6 +1,8 @@
 #include "testwindow.h"
 #include "ui_testwindow.h"
 #include<QFileDialog>
+#include<QFile>
+#include<QTextStream>
 #include<opencv2/highgui.hpp>
 #include<opencv2/core.hpp>
 #include<opencv2/imgproc.hpp>
@@ -24,7 +26,9 @@ TestWindow::~TestWindow()
 {
     delete ui;
 }
+
 /////////////////////////////////// Load Vocabulary File /////////////////////////////
+
 void TestWindow::on_pushButton_2_clicked()
 {
     QString strFileName= QFileDialog::getOpenFileName();
@@ -48,7 +52,8 @@ void TestWindow::on_pushButton_2_clicked()
     fs.release();
 }
 
-/////////////////////////////////// Histogram Database Loading /////////////////////////////
+/////////////////////////////////// Load Histogram Database file /////////////////////////////
+
 void TestWindow::on_pushButton_3_clicked()
 {
     QString strFileName= QFileDialog::getOpenFileName();
@@ -114,7 +119,8 @@ void TestWindow::on_pushButton_3_clicked()
     fs.release();
 }
 
-/////////////////////////////////// Load Query Image /////////////////////////////
+/////////////////////////////////// Identify Writer for Query Image /////////////////////////////
+
 void TestWindow::on_pushButton_clicked()
 {
     QString strFileName= QFileDialog::getOpenFileName();
@@ -133,23 +139,9 @@ void TestWindow::on_pushButton_clicked()
 
     QImage qQueryImg=matToQImage(queryImg);
     ui->QueryImage->setPixmap(QPixmap::fromImage(qQueryImg));
-}
 
-/////////////////////////////////// Compare /////////////////////////////
-/// \brief compare
-/// \param a
-/// \param b
-/// \param data
-/// \return
-///
-bool compareX(int a, int b, vector<double> &data)
-{
-    return data[a]<data[b];
-}
+    ///////////////// Compute distance from Histogram database ///////////////////////
 
-/////////////////////////////////// Identify writers /////////////////////////////
-void TestWindow::on_pushButton_4_clicked()
-{
     vector<cv::KeyPoint> keypoints;
     Mat matGrayscale;
     Mat descriptor;
@@ -167,6 +159,7 @@ void TestWindow::on_pushButton_4_clicked()
     BOWImgDescriptorExtractor bowDE(extractorFM,matcher);
 
     bowDE.setVocabulary(vocabulary);
+
     cv::cvtColor(queryImg,matGrayscale,CV_BGR2GRAY);
     detectorFM->detect(matGrayscale,keypoints);
     extractorFM->compute(matGrayscale, keypoints,descriptor);
@@ -174,7 +167,7 @@ void TestWindow::on_pushButton_4_clicked()
 
     cout<<"Query Image histogram: "<<endl;
 
-    //compute histogram for image
+    //compute histogram for quez image
     for (std::vector<std::vector<int> >::iterator it = pointIdxsOfClusters->begin() ; it != pointIdxsOfClusters->end(); ++it){
         std::vector<int> row=*it;
         cout<<row.size()<<",";
@@ -182,7 +175,7 @@ void TestWindow::on_pushButton_4_clicked()
     }
     cout<<endl;
 
-    //compare imgHist with histDatabase
+    //compare query imgHist with histDatabase
     vector<double> distVector;
     int cnt=0;
     for (vector<vector<int> >::iterator it1 = histDatabase.begin() ; it1 != histDatabase.end(); ++it1){
@@ -206,12 +199,48 @@ void TestWindow::on_pushButton_4_clicked()
     pointIdxsOfClusters->clear();
     imgHist.clear();
     distVector.clear();
+}
 
-    //Distance for all test dataset
+/////////////////////////////////// Compare /////////////////////////////
+/// \brief compare
+/// \param a
+/// \param b
+/// \param data
+/// \return
+///
+bool compareX(int a, int b, vector<double> &data)
+{
+    return data[a]<data[b];
+}
+
+/////////////////////////////////// Identify writers for All Test Data /////////////////////////////
+
+void TestWindow::on_pushButton_4_clicked()
+{
+
+    vector<cv::KeyPoint> keypoints;
+    Mat matGrayscale;
+    Mat descriptor;
+    Mat descriptorFM;
+    std::vector<std::vector<int> >* pointIdxsOfClusters= new std::vector<std::vector<int> >;
+    vector<int> imgHist;
+
+    //create Sift feature point detector and feature extractor
+    Ptr<FeatureDetector> detectorFM=xfeatures2d::SiftFeatureDetector::create();
+    Ptr<DescriptorExtractor> extractorFM=xfeatures2d::SiftDescriptorExtractor::create();
+
+    //create a nearest neighbor matcher
+    Ptr<DescriptorMatcher> matcher(new FlannBasedMatcher);
+    //create BoF descriptor extractor
+    BOWImgDescriptorExtractor bowDE(extractorFM,matcher);
+
+    bowDE.setVocabulary(vocabulary);
+
+    ///////////////// Calculating Distance from Histogram Database for All Test Dataset ///////////////////
+
     cout<<endl<<"Computing distance for all test dataset:"<<endl;
 
     Mat img;
-
     QDir dir("/home/student/Dataset/iam/test_data");
 
     if (!dir.exists())
@@ -223,8 +252,15 @@ void TestWindow::on_pushButton_4_clicked()
         dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
 
         int progress=0;
-        int success=0;
         int idx[816];
+        QVector<QStringList> top5_match;
+        QVector<QStringList> top3_match;
+        QFile top5file("top5_600.txt");
+
+        if (!top5file.open(QIODevice::WriteOnly | QIODevice::Text))
+            return;
+
+        QTextStream outTop5(&top5file);
 
         //Loop through all files
         foreach(QString dirFile, dir.entryList())
@@ -240,22 +276,18 @@ void TestWindow::on_pushButton_4_clicked()
              extractorFM->compute(matGrayscale, keypoints,descriptor);
              bowDE.compute(descriptor,descriptorFM,pointIdxsOfClusters);
 
-             //cout<<"Computing Image histogram: ....... ";
-
              //compute histogram for image
              std::vector<int> row;
              for (std::vector<std::vector<int> >::iterator it2 = pointIdxsOfClusters->begin() ; it2 != pointIdxsOfClusters->end(); ++it2){
                  row=*it2;
                  imgHist.push_back(row.size());
              }
-            //cout<<"DONE"<<endl;
 
             //Compute distance with histDatabase
-            cnt=0;
+            int cnt=0;
+            vector<double> distVector;
             std::vector<int> dbHistVect;
             double dist;
-
-            //cout<<"Computing distance from histogram database...";
 
             for (vector<vector<int> >::iterator it3 = histDatabase.begin() ; it3 != histDatabase.end(); ++it3){
                 dbHistVect=*it3;
@@ -264,17 +296,21 @@ void TestWindow::on_pushButton_4_clicked()
                 cnt++;
                 dbHistVect.clear();
             }
-            //cout<<"DONE"<<endl;
 
+            //Sorting according to increasing distance
             std::iota(std::begin(idx), std::end(idx), 0);
             std::sort(std::begin(idx), std::end(idx), std::bind(compareX, _1, _2, distVector));
 
             std::cout << "Sorted first five forms: ";
+            QStringList top5,top3;
             for (int i=0; i<5; i++){
                 std::cout <<imgIdDatabase[idx[i]]<<":"<< distVector[idx[i]] << ","; std::cout << "\n";
-                if(imgIdDatabase[idx[i]]==dirFile.remove(".png").toStdString())
-                    success++;
+                QString matchedImg=QString::fromStdString(imgIdDatabase[idx[i]]);
+                top5.append(matchedImg);
+
             }
+
+            top5_match.push_back(top5);
 
              //release memory
              img.release();
@@ -288,8 +324,115 @@ void TestWindow::on_pushButton_4_clicked()
              progress++;
         }
 
+
         cout<<"All files tested"<<endl;
-        cout<<"Success : "<<(double)success/progress<<endl;
+
+        ///////////////// Calculating Test Statistics ///////////////////////////
+
+        cout<<"Calculating test statistics..."<<endl;
+        int i=0, success=0;
+        double success_rate;
+
+        foreach(QString dirFile, dir.entryList())
+        {
+            QString filename=dirFile.remove(".png");
+            QStringList top5=top5_match[i];
+
+            //Open forms1.txt to find the Writer of filename
+            QFile formFile("/home/student/Desktop/forms1.txt");
+            if(!formFile.open(QIODevice::ReadOnly| QIODevice::Text))
+            {
+                cout<<"Could not open forms1.txt"<<endl;
+                return;
+            }
+
+            QTextStream form(&formFile);
+            QString writerid;
+
+            //Find writer of the file
+            while(!form.atEnd())
+            {
+                QString line=form.readLine();
+                if(line.split(" ")[0]==filename)
+                {
+                    writerid=line.split(" ")[1];
+                    break;
+                }
+            }
+
+            formFile.close();
+
+            //Open uniq_writer-img_list to find list of imgs for the writer
+            QFile writerImgFile("/home/student/Desktop/uniq_writer_img_list.txt");
+            if(!writerImgFile.open(QIODevice::ReadOnly| QIODevice::Text))
+            {
+                cout<<"Could not open uniq_writer_img_list.txt"<<endl;
+                return;
+            }
+
+            cout<<"Img: "<<filename.toStdString()<<"|Writer Id: "<<writerid.toStdString()<<"|Program Match: "<<(top5.join(",")).toStdString()<<"|Actual Match: ";;
+            outTop5<<filename<<"|"<<writerid<<"|"<<top5.join(",")<<"|";
+            QTextStream writeImg(&writerImgFile);
+            QStringList actualMatch;
+
+            //Find imglist of writerid
+            while(!writeImg.atEnd())
+            {
+                QString line=writeImg.readLine();
+                if(line.split("|")[0]==writerid)
+                {
+                    QString tempimglist=line.split("|")[1];
+                    cout<<tempimglist.toStdString();
+                    outTop5<<tempimglist;
+                    actualMatch=tempimglist.split(",");
+                    break;
+                }
+            }
+
+            writerImgFile.close();
+
+            int flag=0;
+            int actual_success=0;
+            int actual_match=0;
+            cout<<"|Test Stat: ";
+            outTop5<<"|";
+
+            //Compare each actualMatch with top5
+            for (int j = 0; j < actualMatch.size(); ++j)
+            {
+                QString temp=actualMatch[j];
+                cout<<temp.toStdString()<<" : "<<top5.indexOf(actualMatch[j])<<", ";
+                outTop5<<temp<<" : "<<top5.indexOf(actualMatch[j])<<", ";
+
+                if(top5.contains(temp))
+                {
+                    flag=1;
+                    actual_success++;
+                }
+                actual_match++;
+            }
+
+
+            if(flag==1)
+            {
+                success++;
+            }
+            else
+            {
+                cout<<"......No Match";
+                outTop5<<"|No Match";
+            }
+            outTop5<<"|"<<actual_success<<"|"<<actual_match;
+            cout<<endl;
+            outTop5<<endl;
+            i++;
+
+        }
+
+        success_rate=(double)success/progress;
+        cout<<"Success : "<<success_rate<<endl;
+        outTop5<<"Success : "<<success_rate<<endl;
+        top5file.close();
     }
 
 }

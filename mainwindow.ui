@@ -43,7 +43,7 @@
      <item>
       <widget class="QPushButton" name="pushButton">
        <property name="text">
-        <string>Choose Training Images</string>
+        <string>1. Select Training Images</string>
        </property>
       </widget>
      </item>
@@ -58,6 +58,19 @@
       </widget>
      </item>
     </layout>
+   </widget>
+   <widget class="QPushButton" name="CreateHistogramDatabase">
+    <property name="geometry">
+     <rect>
+      <x>21</x>
+      <y>112</y>
+      <width>221</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>2. Create Histogram Database</string>
+    </property>
    </widget>
   </widget>
   <widget class="QToolBar" name="mainToolBar">

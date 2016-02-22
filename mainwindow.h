@@ -24,6 +24,8 @@ private slots:
     void on_pushButton_clicked();
 
 
+    void on_CreateHistogramDatabase_clicked();
+
 private:
     Ui::MainWindow *ui;
     cv::Mat cropImage(cv::Mat inputImage);

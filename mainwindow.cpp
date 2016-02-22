@@ -58,15 +58,6 @@ void MainWindow::on_pushButton_clicked()
     QString fileErrorMsg="Error: List of images not loaded - ";
     cout<<"Number of files chosen - "<<list.count()<<endl;
 
-    //Remove temporary files
-   /* QDir dir(".");
-    dir.setNameFilters(QStringList() << "temp*.png");
-    dir.setFilter(QDir::Files);
-    foreach(QString dirFile, dir.entryList())
-    {
-        dir.remove(dirFile);
-    }
-*/
     vector<cv::KeyPoint> keypoints;
     Mat descriptor;
     Mat featuresUnclustered;
@@ -74,7 +65,7 @@ void MainWindow::on_pushButton_clicked()
     int totalKeypt=0;
     cv::Mat matOriginal;
     cv::Mat matGrayscale;
-/*
+
     //Loop through all images in training directory
     for (QStringList::Iterator it = list.begin();it != list.end(); ++it) {
 
@@ -95,18 +86,10 @@ void MainWindow::on_pushButton_clicked()
              ////////////////// Image Preprocessing ///////////////////////////
 
              //Removing shadow on left and fixed heading
-             //Mat src=matGrayscale(Rect(100,370,(matGrayscale.cols-100),(matGrayscale.rows-370)));
-             //cv::Mat src1;
-             //src.copyTo(src1);
-             //Mat croppedImage=cropImage(src1);
              //Mat croppedImage=preprocessIAM(matGrayscale,filename);
 
              //Saving cropped image
              QStringList filenamePieces= filename.split("/");
-             //string cpFilename="tempCP_"+filenamePieces.value( filenamePieces.length() - 1 ).toStdString();
-             //cv::imwrite(cpFilename,croppedImage);
-
-
 
              ////////////////// Feature Extraction ///////////////////////////
              //Mat kpImg;
@@ -168,142 +151,17 @@ void MainWindow::on_pushButton_clicked()
 
     cout<<"Vocabulary generated"<<endl;
     cout<<"Vocabulary size:"<<vocabulary.size()<<endl;
-    cout<<"Cluster1: "<<vocabulary.row(1)<<endl;
 
     //store the vocabulary
     FileStorage fs("dictionary_400.yml", FileStorage::WRITE);
     fs << "vocabulary" << vocabulary;
     fs.release();
     cout<<"Vocabulary written to disk"<<endl;
+    cout<<"Click on 'Create Histogram Database' Button "<<endl;
 
     //release memory
     bowTrainer.clear();
     featuresUnclustered.release();
-
-*/
-
-    //////////////////////////// Creating databases for Training dataset //////////////////////////////////////////7
-    Mat vocabulary;
-
-    FileStorage fs;
-    fs.open("dictionary_300.yml", FileStorage::READ);
-
-    fs["vocabulary"]>>vocabulary;
-
-    if(vocabulary.empty()){
-        cout<<"Error: Could not load Vocabulary"<<endl;
-        return;
-    }
-    cout<<"Vocabulary loaded successfully"<<endl;
-
-    vector<cv::KeyPoint> keypoints1;
-    Mat descriptor1;
-    Mat descriptorFM;
-
-    //create a nearest neighbor matcher
-    Ptr<DescriptorMatcher> matcher(new FlannBasedMatcher);
-
-    //create Sift feature point extracter
-    Ptr<FeatureDetector> detectorFM=xfeatures2d::SiftFeatureDetector::create();
-
-    //create Sift descriptor extractor
-    Ptr<DescriptorExtractor> extractorFM=xfeatures2d::SiftDescriptorExtractor::create();
-
-    //create BoF descriptor extractor
-    BOWImgDescriptorExtractor bowDE(extractorFM,matcher);
-
-    //Set the dictionary with the vocabulary we created in the first step
-    bowDE.setVocabulary(vocabulary);
-
-    vector<vector<int> > histDatabase;
-    vector<string> imgIdDatabase;
-
-    int x=0;
-    Mat img;
-    std::vector<std::vector<int> >* pointIdxsOfClusters= new std::vector<std::vector<int> >;
-    vector<int> imgHist;
-
-    cout<<"List : "<<list.size()<<endl;
-
-    //Loop through all images in training directory
-    for (QStringList::Iterator it = list.begin();it != list.end(); ++it) {
-
-        cout<<"Progress: "<<x<<" File: ";
-        QString filename=*it;
-        matOriginal=cv::imread(filename.toStdString());
-        cv::cvtColor(matOriginal,img,CV_BGR2GRAY);
-
-        detectorFM->detect(img,keypoints1);
-        extractorFM->compute(img,keypoints1,descriptor1);
-
-        bowDE.compute(descriptor1,descriptorFM,pointIdxsOfClusters);
-
-        QStringList filenamePieces= filename.split("/");
-        QString imgNm="tempCP_"+filenamePieces.value( filenamePieces.length() - 1 );
-        imgNm=imgNm.remove(".png");
-        imgNm=imgNm.remove("tempCP_");
-
-        cout<<imgNm.toStdString()<<endl;
-
-        //push Image identifier
-        imgIdDatabase.push_back(imgNm.toStdString());
-
-        //compute histogram for image
-        for (std::vector<std::vector<int> >::iterator it1 = pointIdxsOfClusters->begin() ; it1 != pointIdxsOfClusters->end(); ++it1){
-            std::vector<int> row=*it1;
-            imgHist.push_back(row.size());
-        }
-
-        histDatabase.push_back(imgHist);
-        x=x+1;
-
-        //release memory
-        try{
-            matOriginal.release();
-            img.release();
-            keypoints1.clear();
-            descriptor1.release();
-            descriptorFM.release();
-            imgHist.clear();
-            pointIdxsOfClusters->clear();
-        }
-        catch(Exception e){
-            cout<<"Error: "<<e.msg<<endl;
-            return;
-        }
-    }
-
-    cout<<"Histogram created for all training images"<<endl;
-    cout<<"Saving histogram database"<<endl;
-
-    FileStorage fs1("histDatabase_300.yml", FileStorage::WRITE);
-    fs1<<"histDatabase";
-    fs1<< "{";
-    for (int i = 0; i < histDatabase.size(); i++)
-    {
-        fs1 << "histDatabase_" + QString::number(i).toStdString();
-        vector<int> tmp = histDatabase[i];
-        fs1 << tmp;
-    }
-
-    fs1<< "}";
-
-    fs1<<"imgIdDatabase";
-    fs1<<"{";
-    for (int i = 0; i < imgIdDatabase.size(); i++)
-    {
-        fs1 << "imgIdDatabase_" + QString::number(i).toStdString();
-        string tmp = imgIdDatabase[i];
-        fs1 << tmp;
-    }
-
-    fs1<< "}";
-
-    fs1.release();
-
-    //release memory
-    histDatabase.clear();
-    imgIdDatabase.clear();
 
 }
 
@@ -355,6 +213,8 @@ void MainWindow::preprocessIAM(){
                      break;
                  }
              }
+             checkListFile.close();
+
              Mat croppedImage;
              if(flag==false)
              {
@@ -378,7 +238,7 @@ void MainWindow::preprocessIAM(){
                  cv::imwrite(tstFileName,part2_testimg);
              }
         }
-        cout<<"all files processed"<<endl;
+        cout<<"All files processed"<<endl;
      }
 
 }
@@ -413,8 +273,8 @@ cv::Mat MainWindow::cropImage(cv::Mat inputImage){
              float rho = lines[i][0], theta = lines[i][1];
              if ( theta>1.56 and theta<1.58)
              {
-                 double a = cos(theta), b = sin(theta);
-                 double x0 = a*rho, y0 = b*rho;
+                 double b = sin(theta);
+                 double y0 = b*rho;
                  rows.push_back(y0);
 
                  //Comment below when not needed
@@ -503,4 +363,131 @@ cv::Mat MainWindow::cropImage(cv::Mat inputImage){
     cv::imwrite("CroppedManuscript.jpg",cv::Mat(inputImage,bounding_rect));
 */
    // return cv::Mat(inputImage,bounding_rect);
+}
+
+void MainWindow::on_CreateHistogramDatabase_clicked()
+{
+
+    //////////////////////////// Creating databases for Training dataset //////////////////////////////////////////7
+    Mat vocabulary;
+
+    FileStorage fs;
+    fs.open("dictionary_400.yml", FileStorage::READ);
+
+    fs["vocabulary"]>>vocabulary;
+
+    if(vocabulary.empty()){
+        cout<<"Error: Could not load Vocabulary"<<endl;
+        return;
+    }
+    cout<<"Vocabulary loaded successfully"<<endl;
+    QDir dir("/home/student/Dataset/iam/train_data");
+
+    if (!dir.exists()){
+        qWarning("Cannot find the training directory");
+        return;
+    }
+    else
+    {
+        cout<<"Test dir opened"<<endl;
+
+        dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
+        vector<cv::KeyPoint> keypoints1;
+        Mat descriptor1;
+        Mat descriptorFM;
+
+        //create a nearest neighbor matcher
+        Ptr<DescriptorMatcher> matcher(new FlannBasedMatcher);
+
+        Ptr<FeatureDetector> detectorFM=xfeatures2d::SiftFeatureDetector::create();
+        Ptr<DescriptorExtractor> extractorFM=xfeatures2d::SiftDescriptorExtractor::create();
+
+        //create BoF descriptor extractor
+        BOWImgDescriptorExtractor bowDE(extractorFM,matcher);
+        bowDE.setVocabulary(vocabulary);
+
+        vector<vector<int> > histDatabase;
+        vector<string> imgIdDatabase;
+
+        int x=0;
+        Mat matOriginal,img;
+        std::vector<std::vector<int> >* pointIdxsOfClusters= new std::vector<std::vector<int> >;
+        vector<int> imgHist;
+
+        //Loop through all images in training directory
+        foreach(QString dirFile, dir.entryList())
+        {
+             cout<<"Progress: "<<x<<endl;
+             QString filenameWithPath=dir.absolutePath()+"/"+dirFile;
+
+             matOriginal=cv::imread(filenameWithPath.toStdString());
+             cv::cvtColor(matOriginal,img,CV_BGR2GRAY);
+
+             detectorFM->detect(img,keypoints1);
+             extractorFM->compute(img,keypoints1,descriptor1);
+
+             bowDE.compute(descriptor1,descriptorFM,pointIdxsOfClusters);
+             QString imgNm=dirFile.remove(".png");
+
+             cout<<imgNm.toStdString()<<endl;
+
+             //push Image identifier
+             imgIdDatabase.push_back(imgNm.toStdString());
+             //compute histogram for image
+             for (std::vector<std::vector<int> >::iterator it1 = pointIdxsOfClusters->begin() ; it1 != pointIdxsOfClusters->end(); ++it1){
+                 std::vector<int> row=*it1;
+                 imgHist.push_back(row.size());
+             }
+
+             histDatabase.push_back(imgHist);
+             x=x+1;
+
+             //release memory
+             try{
+                 matOriginal.release();
+                 img.release();
+                 keypoints1.clear();
+                 descriptor1.release();
+                 descriptorFM.release();
+                 imgHist.clear();
+                 pointIdxsOfClusters->clear();
+             }
+             catch(Exception e){
+                 cout<<"Error: "<<e.msg<<endl;
+                 return;
+             }
+        }
+
+        cout<<"Histogram created for all training images"<<endl;
+        cout<<"Saving histogram database"<<endl;
+
+        FileStorage fs1("histDatabase_400.yml", FileStorage::WRITE);
+        fs1<<"histDatabase";
+        fs1<< "{";
+        for (int i = 0; i < histDatabase.size(); i++)
+        {
+            fs1 << "histDatabase_" + QString::number(i).toStdString();
+            vector<int> tmp = histDatabase[i];
+            fs1 << tmp;
+        }
+
+        fs1<< "}";
+
+        fs1<<"imgIdDatabase";
+        fs1<<"{";
+        for (int i = 0; i < imgIdDatabase.size(); i++)
+        {
+            fs1 << "imgIdDatabase_" + QString::number(i).toStdString();
+            string tmp = imgIdDatabase[i];
+            fs1 << tmp;
+        }
+
+        fs1<< "}";
+
+        fs1.release();
+
+        //release memory
+        histDatabase.clear();
+        imgIdDatabase.clear();
+    }
 }
