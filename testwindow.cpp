@@ -13,6 +13,7 @@
 #include<algorithm>
 #include <numeric>      // std::iota
 #include <functional>   // std::bind
+#include <math.h>
 using namespace std::placeholders;
 
 TestWindow::TestWindow(QWidget *parent) :
@@ -119,7 +120,7 @@ void TestWindow::on_pushButton_3_clicked()
     fs.release();
 }
 
-/////////////////////////////////// Identify Writer for Query Image /////////////////////////////
+/////////////////////////////////// Load Query Image and Identify Writer /////////////////////////////
 
 void TestWindow::on_pushButton_clicked()
 {
@@ -255,7 +256,7 @@ void TestWindow::on_pushButton_4_clicked()
         int idx[816];
         QVector<QStringList> top5_match;
         QVector<QStringList> top3_match;
-        QFile top5file("top5_600.txt");
+        QFile top5file("top5_200_cos.txt");
 
         if (!top5file.open(QIODevice::WriteOnly | QIODevice::Text))
             return;
@@ -437,7 +438,8 @@ void TestWindow::on_pushButton_4_clicked()
 
 }
 
-
+/*
+ //////////////////////// Compute Chi-Square Distance ////////////////////////////
 double TestWindow::computeDist(vector<int> queryImgHist,vector<int>dbImgHist){
 
     int q,d,sum=0;
@@ -451,6 +453,25 @@ double TestWindow::computeDist(vector<int> queryImgHist,vector<int>dbImgHist){
        // cout<<QString::number(q).toStdString()<<" , "<<QString::number(d).toStdString()<<" , "<<QString::number(q).toStdString()<<" , "<<QString::number(pow((d-q),2)).toStdString()<<endl;
     }
     return sqrt(sum);
+}
+*/
+
+//////////////////////// Compute Cosine Distance ////////////////////////////
+double TestWindow::computeDist(vector<int> queryImgHist,vector<int>dbImgHist){
+
+    double dot=0, denom_a=0, denom_b=0;
+
+    for(int i=0; i< queryImgHist.size();i++)
+    {
+        dot+=queryImgHist[i]*dbImgHist[i];
+        denom_a+=queryImgHist[i]*queryImgHist[i];
+        denom_b+=dbImgHist[i]*dbImgHist[i];
+    }
+    denom_a=sqrt(denom_a);
+    denom_b=sqrt(denom_b);
+
+    return acos(dot/(denom_a*denom_b));
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////

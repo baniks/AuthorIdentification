@@ -426,6 +426,7 @@ void MainWindow::on_CreateHistogramDatabase_clicked()
              detectorFM->detect(img,keypoints1);
              extractorFM->compute(img,keypoints1,descriptor1);
 
+             //Alternative function - own implementation
              bowDE.compute(descriptor1,descriptorFM,pointIdxsOfClusters);
              QString imgNm=dirFile.remove(".png");
 
