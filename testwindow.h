@@ -37,9 +37,11 @@ private:
     vector<vector<int> > histDatabase;
     vector<string> imgIdDatabase;
     Mat queryImg;
-    QImage matToQImage(cv::Mat mat);
+    QString q_clust_center;
+    //QImage matToQImage(cv::Mat mat);
     double computeDist(vector<int>,vector<int>);
-//    bool compare(int a, int b, double* data);
+    double computeDistChi(vector<int> ,vector<int>dbImgHist);
+
 };
 
 #endif // TESTWINDOW_H

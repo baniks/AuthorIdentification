@@ -24,12 +24,26 @@ private slots:
     void on_pushButton_clicked();
 
 
-    void on_CreateHistogramDatabase_clicked();
+    //void on_CreateHistogramDatabase_clicked();
+
+   // void on_pushButton_2_clicked();
+
+    void on_SelectVocabulary_clicked();
+
+    void on_CreateHistDB_clicked();
+
+    void on_pushButton_2_clicked();
 
 private:
     Ui::MainWindow *ui;
+    cv::Mat featuresUnclustered;
+    cv::Mat vocabulary;
+    QStringList strVocabularyFilelist;
     cv::Mat cropImage(cv::Mat inputImage);
     void preprocessIAM();
+    vector<vector<float> > kmeansClusterMultiDim(int k);
+    double computeDist(vector<float> vec1,vector<float> vec2);
+    vector<float> calcAvgVec(vector<vector<float> > obj);
 };
 
 #endif // MAINWINDOW_H
