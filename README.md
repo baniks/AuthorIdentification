@@ -25,20 +25,16 @@ The application has three classes -
 #########################################################################################################################
 Functionality:
 Training:
-1. In Training window, select training images by clicking on the "Browse to Upload" push button. 
-   This extracts features and generates a vocabulary file named dictionary_600.yml in the out directory for codebook size of 600. 
-2. Once the vocabulary is created, select the same by clicking on the "Browse to Upload" push button in the create histogram database section. 
-3. Click on "Create Histogram Database" button to generate histogram for all training images loaded from the training directory path.
+1. In Training window, select training images by clicking on the "Browse to Upload" push button. This extracts features and generates a vocabulary file named dictionary_600.yml in the out directory for codebook size of 600. <br />
+2. Once the vocabulary is created, select the same by clicking on the "Browse to Upload" push button in the create histogram database section. <br />
+3. Click on "Create Histogram Database" button to generate histogram for all training images loaded from the training directory path. <br />
 
 Testing:
-1. In Test window, select the vocabulary file by clicking on the "Upload Vocabulary" button. 
-2. Select the histogram database file by clicking on the "Upload histogram database" button. 
-3. Either select one query image by "Upload query image". This displays the query image and the topmost match in new windows. 
-   This method also shows the top 5 match and the corresponding distance from the query image. In addition to this, it also verifies the
-   program output with actual output and reports the success rate and recall rate.
-   Note: Please rerun to test for another query image.
-4. Alternatively to step 3, all test data from the test directory path can also be tested by clicking the "Calculate test statistics for All Test Data".
-   This method generates two files top5_600_CT_cosinesim.txt and top5_600_CT_chisquare.txt in the out directory. 
+1. In Test window, select the vocabulary file by clicking on the "Upload Vocabulary" button. <br />
+2. Select the histogram database file by clicking on the "Upload histogram database" button. <br />
+3. Either select one query image by "Upload query image". This displays the query image and the topmost match in new windows. This method also shows the top 5 match and the corresponding distance from the query image. In addition to this, it also verifies the program output with actual output and reports the success rate and recall rate. <br />
+   Note: Please rerun to test for another query image. <br />
+4. Alternatively to step 3, all test data from the test directory path can also be tested by clicking the "Calculate test statistics for All Test Data". This method generates two files top5_600_CT_cosinesim.txt and top5_600_CT_chisquare.txt in the out directory. <br />
    These files report the overall success and recall rate and also provides details at test data level.
 
 ##########################################################################################################################
