@@ -3,7 +3,7 @@
 # Bag of feature implementation of Writer retrieval system using SIFT
 ##########################################################################################################################	
 
-Deploy:
+Deploy: 
 - To run the application, double click the AuthorIdentificationNew application file in build directory.
 
 ##########################################################################################################################
