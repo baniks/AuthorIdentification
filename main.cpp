@@ -8,6 +8,7 @@ QString test_path;
 QString out_dir;
 QString form_file_path;
 QString uniqWriterImgFile_path;
+QString single_sample_list;
 bool featureFlag;
 
 int main(int argc, char *argv[])
@@ -18,14 +19,15 @@ int main(int argc, char *argv[])
     training_path="/Users/macbook/Dataset/iam/training_data";
     sample_imgs_path="/Users/macbook/Dataset/iam/train_kp_data";    //(For keypointdetection.cpp)
     test_path="/Users/macbook/Dataset/iam/test_data";
-    out_dir="/Users/macbook/Workspace/build-AuthorIdentificationNew-Desktop_Qt_5_5_1_clang_64bit-Debug/out";
-    form_file_path="/Users/macbook/Workspace/build-AuthorIdentificationNew-Desktop_Qt_5_5_1_clang_64bit-Debug/forms1.txt";
-    uniqWriterImgFile_path="/Users/macbook/Workspace/build-AuthorIdentificationNew-Desktop_Qt_5_5_1_clang_64bit-Debug/uniq_writer_img_list.txt";
+    out_dir="/Users/macbook/AuthorIdentificationNew/out";
+    form_file_path="/Users/macbook/AuthorIdentificationNew/verifydata/forms1.txt";
+    uniqWriterImgFile_path="/Users/macbook/AuthorIdentificationNew/verifydata/uniq_writer_img_list.txt";
+    single_sample_list="/Users/macbook/AuthorIdentificationNew/verifydata/single_sample_list.txt";
 
     //Setting flag -
     //  True: features need to be extracted during training phase
     //  False: Upload extracted feature file (.yml)
-    featureFlag=false;
+    featureFlag=true;
 
     //Show Training Window
     MainWindow w;

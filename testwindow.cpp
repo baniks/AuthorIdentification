@@ -285,6 +285,7 @@ void TestWindow::on_pushButton_clicked()
 
     //create Sift feature point detector and feature extractor
     Ptr<FeatureDetector> detectorFM=xfeatures2d::SiftFeatureDetector::create(0,3,0.08,10,1.6);
+    //Ptr<FeatureDetector> detectorFM=xfeatures2d::SiftFeatureDetector::create();
     Ptr<DescriptorExtractor> extractorFM=xfeatures2d::SiftDescriptorExtractor::create();
 
     //create a nearest neighbor matcher
@@ -526,6 +527,7 @@ void TestWindow::on_pushButton_4_clicked()
 
     //create Sift feature point detector and feature extractor
     Ptr<FeatureDetector> detectorFM=xfeatures2d::SiftFeatureDetector::create(0,3,0.08,10,1.6);
+    //Ptr<FeatureDetector> detectorFM=xfeatures2d::SiftFeatureDetector::create();
     Ptr<DescriptorExtractor> extractorFM=xfeatures2d::SiftDescriptorExtractor::create();
 
     //Create a nearest neighbor matcher
@@ -672,8 +674,8 @@ void TestWindow::on_pushButton_4_clicked()
         int sum_actual_success_top5=0, sum_actual_success_chi_top5=0,sum_actual_success_top3=0, sum_actual_success_chi_top3=0;
         int sum_actual_match_top5_cnt=0,sum_actual_match_top3_cnt=0;
 
-        QString top5filenm="/top5_"+q_clust_center+"_CT_cosinesim.txt";
-        QString top5Chifilenm="/top5"+q_clust_center+"CT_chisquare.txt";
+        QString top5filenm="/top5_"+q_clust_center+"_CT_cosinesim_v1.txt";
+        QString top5Chifilenm="/top5"+q_clust_center+"CT_chisquare_v1.txt";
         cout<<"Top 5 filename: "<<top5filenm.toStdString()<<" "<<top5Chifilenm.toStdString()<<endl;
 
         QFile top5file(out_dir+top5filenm);

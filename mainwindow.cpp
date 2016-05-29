@@ -46,6 +46,7 @@ RNG rng(12345);
 extern QString training_path;
 extern QString test_path;
 extern QString out_dir;
+extern QString single_sample_list;
 extern bool featureFlag;
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -269,7 +270,7 @@ void MainWindow::preprocessIAM(){
 
              //Check if the image file is in single sample list
              //single sample list: list of files which are the only samples written by authors
-             QFile checkListFile("/home/student/Desktop/single_sample_list.txt");
+             QFile checkListFile(single_sample_list);
 
              if (!checkListFile.open(QIODevice::ReadOnly | QIODevice::Text))
              {
@@ -451,6 +452,7 @@ void MainWindow::on_pushButton_clicked()
 
                     //Detect SIFT Key Points with parameters decided from 'keypointdetection'
                     Ptr<cv::xfeatures2d::SiftFeatureDetector> detector=xfeatures2d::SiftFeatureDetector::create(0,3,0.08,10,1.6);
+                    //Ptr<cv::xfeatures2d::SiftFeatureDetector> detector=xfeatures2d::SiftFeatureDetector::create();
                     detector->detect(thresImg,keypoints);
 
                     cout<<"Number of keypoints detected: "<<keypoints.size()<<endl;
@@ -550,13 +552,13 @@ void MainWindow::on_pushButton_clicked()
 
     //////////////////////////// Clustering and Vocabulary Creation //////////////////////////////////////////
 
-    int clusterCenter[3]={1000,1500,2000};       //{300,400,600,800,};
+    int clusterCenter[1]={600};       //{200,300,400,600,800,1000,1500};
     cv::TermCriteria tc(CV_TERMCRIT_ITER,100,0.001);
     int retries=1;
     int flags=cv::KMEANS_PP_CENTERS;
 
     //Create vocabulary for range of clusters
-    for(int i=0;i<3;i++){
+    for(int i=0;i<1;i++){
 
         cout<<"Cluster Center: "<<clusterCenter[i]<<endl;
 
@@ -731,6 +733,7 @@ void MainWindow::on_CreateHistDB_clicked()
             //Create a nearest neighbor matcher
             Ptr<DescriptorMatcher> matcher(new FlannBasedMatcher);
             Ptr<FeatureDetector> detectorFM=xfeatures2d::SiftFeatureDetector::create(0,3,0.08,10,1.6);
+            //Ptr<FeatureDetector> detectorFM=xfeatures2d::SiftFeatureDetector::create();
             Ptr<DescriptorExtractor> extractorFM=xfeatures2d::SiftDescriptorExtractor::create();
 
             //Create BoF descriptor extractor
